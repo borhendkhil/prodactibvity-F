@@ -1,6 +1,6 @@
 /**
 =========================================================
-* Material Dashboard 2 React - v2.2.0
+*  React - v2.2.0
 =========================================================
 
 * Product Page: https://www.creative-tim.com/product/material-dashboard-react
@@ -14,16 +14,16 @@ Coded by www.creative-tim.com
 */
 
 /**
- * The base typography styles for the Material Dashboard 2 React.
+ * The base typography styles for the  React.
  * You can add new typography style using this file.
- * You can customized the typography styles for the entire Material Dashboard 2 React using thie file.
+ * You can customized the typography styles for the entire  React using thie file.
  */
 
-// Material Dashboard 2 React Base Styles
-import colors from "assets/theme/base/colors";
+//  React Base Styles
+import colors from 'assets/theme/base/colors';
 
-// Material Dashboard 2 React Helper Functions
-import pxToRem from "assets/theme/functions/pxToRem";
+//  React Helper Functions
+import pxToRem from 'assets/theme/functions/pxToRem';
 
 const { dark } = colors;
 
@@ -134,7 +134,7 @@ const typography = {
     fontSize: baseProperties.fontSizeSM,
     fontWeight: baseProperties.fontWeightLight,
     lineHeight: 1.5,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
   },
 
   caption: {
@@ -185,8 +185,8 @@ const typography = {
     md: baseProperties.fontSizeMD,
     lg: baseProperties.fontSizeLG,
     xl: baseProperties.fontSizeXL,
-    "2xl": baseProperties.fontSize2XL,
-    "3xl": baseProperties.fontSize3XL,
+    '2xl': baseProperties.fontSize2XL,
+    '3xl': baseProperties.fontSize3XL,
   },
 
   lineHeight: {
