@@ -38,7 +38,7 @@ import breakpoints from 'assets/theme/base/breakpoints';
 import burceMars from 'assets/images/bruce-mars.jpg';
 import backgroundImage from 'assets/images/bg-profile.jpeg';
 
-function Header({ children, name }){
+function Header({ children, name, roll }) {
 
   const [tabsOrientation, setTabsOrientation] = useState('horizontal');
   const [tabValue, setTabValue] = useState(0);
@@ -50,8 +50,7 @@ function Header({ children, name }){
         ? setTabsOrientation('vertical')
         : setTabsOrientation('horizontal');
     }
-    console.log(name);
-    // console.log(roll);  
+   
 
     /** 
      The event listener that's calling the handleTabsOrientation function when resizing the window.
@@ -103,14 +102,13 @@ function Header({ children, name }){
             <MDBox height="100%" mt={0.5} lineHeight={1}>
               <MDTypography variant="h5" fontWeight="medium">
               {name} {/* Use the name prop */}
-                
-              </MDTypography>
+                 </MDTypography>
               <MDTypography variant="button" color="text" fontWeight="regular">
-                {/* {roll} */}
+                {roll} {/* Use the roll prop */}
               </MDTypography>
             </MDBox>
           </Grid>
-          <Grid item xs={12} md={6} lg={4} sx={{ ml: 'auto' }}>
+          {/* <Grid item xs={12} md={6} lg={4} sx={{ ml: 'auto' }}>
             <AppBar position="static">
               <Tabs orientation={tabsOrientation} value={tabValue} onChange={handleSetTabValue}>
                 <Tab
@@ -137,9 +135,9 @@ function Header({ children, name }){
                     </Icon>
                   }
                 />
-              </Tabs>
-            </AppBar>
-          </Grid>
+              </Tabs> }
+            { </AppBar>
+          </Grid> */}
         </Grid>
         {children}
       </Card>
@@ -156,7 +154,7 @@ Header.defaultProps = {
 Header.propTypes = {
   children: PropTypes.node,
   name: PropTypes.string.isRequired,
-  // roll: PropTypes.string.isRequired,
+  roll: PropTypes.string.isRequired,
 };
 
 export default Header;

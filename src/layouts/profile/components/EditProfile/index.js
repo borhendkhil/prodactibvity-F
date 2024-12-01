@@ -92,7 +92,7 @@ function EditProfile() {
     return (
         <DashboardLayout>
             <DashboardNavbar />
-            <Header name={formData.username || 'Loading...'} />
+            <Header  />
             
             <MDBox mt={12} mb={11}>
                 <Grid container spacing={11}>
