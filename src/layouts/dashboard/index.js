@@ -12,6 +12,21 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
+
+/**
+=========================================================
+* Material Dashboard 2 React - v2.2.0
+=========================================================
+
+* Product Page: https://www.creative-tim.com/product/material-dashboard-react
+* Copyright 2023 Creative Tim (https://www.creative-tim.com)
+
+Coded by www.creative-tim.com
+
+ =========================================================
+
+* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+*/
 import React, { useState } from 'react';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
@@ -25,74 +40,36 @@ import Avatar from '@mui/material/Avatar';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
 import TextField from '@mui/material/TextField';
-import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
+import DialogActions from '@mui/material/DialogActions';
+import InputLabel from '@mui/material/InputLabel';
+import Select from '@mui/material/Select';
+import FormControl from '@mui/material/FormControl';
 
 const initialTasks = {
   upcoming: [
-    { id: '1', title: 'Task 1: Prepare report', date: '2024-12-01', assignedTo: 'John Doe', profilePic: 'https://www.example.com/johndoe.jpg' },
-    { id: '2', title: 'Task 2: Team meeting', date: '2024-12-02', assignedTo: 'Jane Smith', profilePic: 'https://www.example.com/janesmith.jpg' },
+    { id: '1', title: 'Task 1: Prepare report', date: '2024-12-01', assignedTo: 'John Doe', profilePic: '' },
+    { id: '2', title: 'Task 2: Team meeting', date: '2024-12-02', assignedTo: 'Jane Smith', profilePic: '' },
   ],
   inProgress: [
-    { id: '3', title: 'Task 3: Develop feature', date: '2024-12-03', assignedTo: 'Mark Johnson', profilePic: 'https://www.example.com/markjohnson.jpg' },
-    { id: '4', title: 'Task 4: Debug issues', date: '2024-12-04', assignedTo: 'Emily Davis', profilePic: 'https://www.example.com/emilydavis.jpg' },
+    { id: '3', title: 'Task 1: Prepare report', date: '2024-12-01', assignedTo: 'John Doe', profilePic: '' },
+    { id: '4', title: 'Task 2: Team meeting', date: '2024-12-02', assignedTo: 'Jane Smith', profilePic: '' },
   ],
-  done: [
-    { id: '5', title: 'Task 5: Code review', date: '2024-12-05', assignedTo: 'Lucas Brown', profilePic: 'https://www.example.com/lucasbrown.jpg' },
-    { id: '6', title: 'Task 6: Deploy to staging', date: '2024-12-06', assignedTo: 'Sophia Taylor', profilePic: 'https://www.example.com/sophiataylor.jpg' },
-  ],
+  done: [{ id: '5', title: 'Task 1: Prepare report', date: '2024-12-01', assignedTo: 'John Doe', profilePic: '' },
+    { id: '6', title: 'Task 2: Team meeting', date: '2024-12-02', assignedTo: 'Jane Smith', profilePic: '' },],
 };
 
-const users = [
-  { name: 'John Doe', profilePic: 'https://www.example.com/johndoe.jpg' },
-  { name: 'Jane Smith', profilePic: 'https://www.example.com/janesmith.jpg' },
-  { name: 'Mark Johnson', profilePic: 'https://www.example.com/markjohnson.jpg' },
-  { name: 'Emily Davis', profilePic: 'https://www.example.com/emilydavis.jpg' },
-  { name: 'Lucas Brown', profilePic: 'https://www.example.com/lucasbrown.jpg' },
-  { name: 'Sophia Taylor', profilePic: 'https://www.example.com/sophiataylor.jpg' },
-];
+const users = ['John Doe', 'Jane Smith', 'Mark Johnson', 'Emily Davis'];
 
 function Dashboard() {
   const [tasks, setTasks] = useState(initialTasks);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [currentColumn, setCurrentColumn] = useState('');
-  const [newTask, setNewTask] = useState({
-    title: '',
-    date: '',
-    assignedTo: '',
-    profilePic: '',
-  });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [newTask, setNewTask] = useState({ title: '', date: '', assignedTo: '', column: '' });
 
-  const handleOpenDialog = (column) => {
-    setCurrentColumn(column);
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-    setNewTask({ title: '', date: '', assignedTo: '', profilePic: '' });
-  };
-
-  const handleAddTask = () => {
-    const updatedTasks = {
-      ...tasks,
-      [currentColumn]: [
-        ...tasks[currentColumn],
-        {
-          id: String(Date.now()), // Unique ID for the task
-          ...newTask,
-        },
-      ],
-    };
-
-    setTasks(updatedTasks);
-    handleCloseDialog();
-  };
-
+  // Gestion du drag-and-drop
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
@@ -113,6 +90,27 @@ function Dashboard() {
       [source.droppableId]: sourceColumn,
       [destination.droppableId]: destColumn,
     });
+  };
+
+  // Ouverture de la boîte de dialogue
+  const handleOpenDialog = (column) => {
+    setNewTask({ ...newTask, column });
+    setDialogOpen(true);
+  };
+
+  // Fermeture de la boîte de dialogue
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setNewTask({ title: '', date: '', assignedTo: '', column: '' });
+  };
+
+  // Ajout d'une nouvelle tâche
+  const handleAddTask = () => {
+    const column = newTask.column;
+    const newId = `${Date.now()}`; // Génération d'un ID unique
+    const updatedTasks = [...tasks[column], { ...newTask, id: newId }];
+    setTasks({ ...tasks, [column]: updatedTasks });
+    handleCloseDialog();
   };
 
   return (
@@ -138,7 +136,13 @@ function Dashboard() {
                 >
                   <Typography
                     variant="h6"
-                    color={column === 'upcoming' ? 'primary' : column === 'inProgress' ? 'info' : 'success'}
+                    color={
+                      column === 'upcoming'
+                        ? 'primary'
+                        : column === 'inProgress'
+                        ? 'info'
+                        : 'success'
+                    }
                     fontWeight="bold"
                   >
                     {column === 'upcoming' && (
@@ -170,7 +174,11 @@ function Dashboard() {
                         }}
                       >
                         {tasks[column].map((task, index) => (
-                          <Draggable key={task.id} draggableId={task.id} index={index}>
+                          <Draggable
+                            key={task.id}
+                            draggableId={task.id}
+                            index={index}
+                          >
                             {(provided) => (
                               <Card
                                 ref={provided.innerRef}
@@ -182,6 +190,7 @@ function Dashboard() {
                                   boxShadow: 3,
                                   borderRadius: 2,
                                   backgroundColor: '#fff',
+                                  border: '1px solid #000',
                                   '&:hover': {
                                     transform: 'scale(1.05)',
                                     boxShadow: 6,
@@ -191,7 +200,6 @@ function Dashboard() {
                                 <Typography variant="body2" sx={{ color: '#333' }}>
                                   {task.title}
                                 </Typography>
-
                                 <MDBox display="flex" alignItems="center" sx={{ mt: 1 }}>
                                   <AccessTimeIcon sx={{ mr: 1 }} />
                                   <Typography variant="caption" color="textSecondary" sx={{ mr: 2 }}>
@@ -217,8 +225,16 @@ function Dashboard() {
 
                   <Button
                     variant="contained"
-                    color="primary"
-                    sx={{ mt: 2 }}
+                    sx={{
+                      mt: 2,
+                      backgroundColor: '#1a73e8',
+                      color: '#fff',
+                      textTransform: 'none',
+                      '&:hover': {
+                        backgroundColor: '#fff',
+                        color: '#1a73e8',
+                      },
+                    }}
                     onClick={() => handleOpenDialog(column)}
                   >
                     + Ajouter Task
@@ -228,55 +244,59 @@ function Dashboard() {
             ))}
           </Grid>
         </DragDropContext>
-      </MDBox>
 
-      {/* Dialog pour ajouter une nouvelle tâche */}
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>Ajouter une nouvelle tâche</DialogTitle>
-        <DialogContent>
-          <TextField
-            fullWidth
-            label="Titre"
-            margin="dense"
-            value={newTask.title}
-            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-          />
-          <TextField
-            fullWidth
-            label="Date"
-            margin="dense"
-            type="date"
-            InputLabelProps={{ shrink: true }}
-            value={newTask.date}
-            onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
-          />
-          <Select
-            fullWidth
-            value={newTask.assignedTo}
-            onChange={(e) => {
-              const selectedUser = users.find((user) => user.name === e.target.value);
-              setNewTask({ ...newTask, assignedTo: selectedUser.name, profilePic: selectedUser.profilePic });
-            }}
-            displayEmpty
-            margin="dense"
-          >
-            <MenuItem value="" disabled>
-              Sélectionner une personne
-            </MenuItem>
-            {users.map((user) => (
-              <MenuItem key={user.name} value={user.name}>
-                {user.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Annuler</Button>
-          <Button variant="contained" onClick={handleAddTask}>
-            Ajouter
-          </Button>
-        </DialogActions>
-      </Dialog>
+        {/* Boîte de dialogue pour ajouter une tâche */}
+        <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+          <DialogTitle>Ajouter une tâche</DialogTitle>
+          <DialogContent>
+            <TextField
+              fullWidth
+              margin="dense"
+              label="Titre de la tâche"
+              value={newTask.title}
+              onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+            />
+            <TextField
+              fullWidth
+              margin="dense"
+              type="date"
+              label="Date"
+              InputLabelProps={{ shrink: true }}
+              value={newTask.date}
+              onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
+            />
+            <FormControl fullWidth margin="dense">
+              <InputLabel id="assign-to-label">Assigner à</InputLabel>
+              <Select
+                labelId="assign-to-label"
+                value={newTask.assignedTo}
+                onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
+                sx={{
+                  borderRadius: 2,
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#1a73e8',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: '#1a73e8',
+                  },
+                }}
+              >
+                {users.map((user) => (
+                  <MenuItem key={user} value={user}>
+                    {user}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDialog}>Annuler</Button>
+            <Button onClick={handleAddTask} variant="contained" color="primary">
+              Ajouter
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </MDBox>
     </DashboardLayout>
   );
 }
