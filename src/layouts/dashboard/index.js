@@ -27,6 +27,8 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
+
+
 import React, { useState } from 'react';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
@@ -51,15 +53,15 @@ import FormControl from '@mui/material/FormControl';
 
 const initialTasks = {
   upcoming: [
-    { id: '1', title: 'Task 1: Prepare report', date: '2024-12-01', assignedTo: 'John Doe', profilePic: '' },
-    { id: '2', title: 'Task 2: Team meeting', date: '2024-12-02', assignedTo: 'Jane Smith', profilePic: '' },
+    { id: '1', title: 'Task 1: Prepare report', date: '2024-12-01', assignedTo: 'John Doe', profilePic: '', departmentId: 'Dept 1', creatorId: 'User 1', status: 'upcoming', priority: 'high' },
+    { id: '2', title: 'Task 2: Team meeting', date: '2024-12-02', assignedTo: 'Jane Smith', profilePic: '', departmentId: 'Dept 2', creatorId: 'User 2', status: 'inProgress', priority: 'medium' },
   ],
   inProgress: [
-    { id: '3', title: 'Task 1: Prepare report', date: '2024-12-01', assignedTo: 'John Doe', profilePic: '' },
-    { id: '4', title: 'Task 2: Team meeting', date: '2024-12-02', assignedTo: 'Jane Smith', profilePic: '' },
+    { id: '3', title: 'Task 3: Code review', date: '2024-12-03', assignedTo: 'John Doe', profilePic: '', departmentId: 'Dept 1', creatorId: 'User 3', status: 'inProgress', priority: 'low' },
   ],
-  done: [{ id: '5', title: 'Task 1: Prepare report', date: '2024-12-01', assignedTo: 'John Doe', profilePic: '' },
-    { id: '6', title: 'Task 2: Team meeting', date: '2024-12-02', assignedTo: 'Jane Smith', profilePic: '' },],
+  done: [
+    { id: '4', title: 'Task 4: Finish testing', date: '2024-12-04', assignedTo: 'Jane Smith', profilePic: '', departmentId: 'Dept 2', creatorId: 'User 4', status: 'done', priority: 'high' },
+  ],
 };
 
 const users = ['John Doe', 'Jane Smith', 'Mark Johnson', 'Emily Davis'];
@@ -67,22 +69,29 @@ const users = ['John Doe', 'Jane Smith', 'Mark Johnson', 'Emily Davis'];
 function Dashboard() {
   const [tasks, setTasks] = useState(initialTasks);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newTask, setNewTask] = useState({ title: '', date: '', assignedTo: '', column: '' });
+  const [selectedTask, setSelectedTask] = useState(null);
+  const [newTask, setNewTask] = useState({
+    title: '',
+    description: '',
+    status: '',
+    priority: '',
+    dueDate: '',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    assigneeId: '',
+    creatorId: '',
+    departmentId: '',
+    column: '',
+  });
 
-  // Gestion du drag-and-drop
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
-    if (
-      source.droppableId === destination.droppableId &&
-      source.index === destination.index
-    )
-      return;
+    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
     const sourceColumn = tasks[source.droppableId];
     const destColumn = tasks[destination.droppableId];
     const [removedTask] = sourceColumn.splice(source.index, 1);
-
     destColumn.splice(destination.index, 0, removedTask);
 
     setTasks({
@@ -92,25 +101,72 @@ function Dashboard() {
     });
   };
 
-  // Ouverture de la boîte de dialogue
-  const handleOpenDialog = (column) => {
-    setNewTask({ ...newTask, column });
+  const handleOpenDialog = (task = null, column = '') => {
+    if (task) {
+      setSelectedTask(task);
+    } else {
+      setSelectedTask(null);
+    }
+
+    setNewTask({
+      ...newTask,
+      column,
+      status: column,
+      createdAt: task ? task.createdAt : new Date().toISOString(),
+      updatedAt: task ? task.updatedAt : new Date().toISOString(),
+      title: task ? task.title : '',
+      description: task ? task.description : '',
+      assigneeId: task ? task.assigneeId : '',
+      creatorId: task ? task.creatorId : '',
+      departmentId: task ? task.departmentId : '',
+      priority: task ? task.priority : '',
+      dueDate: task ? task.dueDate : '',
+    });
     setDialogOpen(true);
   };
 
-  // Fermeture de la boîte de dialogue
   const handleCloseDialog = () => {
     setDialogOpen(false);
-    setNewTask({ title: '', date: '', assignedTo: '', column: '' });
+    setNewTask({
+      title: '',
+      description: '',
+      status: '',
+      priority: '',
+      dueDate: '',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      assigneeId: '',
+      creatorId: '',
+      departmentId: '',
+      column: '',
+    });
   };
 
-  // Ajout d'une nouvelle tâche
-  const handleAddTask = () => {
-    const column = newTask.column;
-    const newId = `${Date.now()}`; // Génération d'un ID unique
-    const updatedTasks = [...tasks[column], { ...newTask, id: newId }];
-    setTasks({ ...tasks, [column]: updatedTasks });
-    handleCloseDialog();
+  const handleAddTask = async () => {
+    const newTaskWithTimestamps = {
+      ...newTask,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newTaskWithTimestamps),
+      });
+
+      if (response.ok) {
+        const createdTask = await response.json();
+        const updatedTasks = [...tasks[newTask.column], createdTask];
+        setTasks({ ...tasks, [newTask.column]: updatedTasks });
+        handleCloseDialog();
+      } else {
+        console.error('Erreur lors de la création de la tâche');
+      }
+    } catch (error) {
+      console.error('Erreur réseau :', error);
+    }
   };
 
   return (
@@ -136,13 +192,7 @@ function Dashboard() {
                 >
                   <Typography
                     variant="h6"
-                    color={
-                      column === 'upcoming'
-                        ? 'primary'
-                        : column === 'inProgress'
-                        ? 'info'
-                        : 'success'
-                    }
+                    color={column === 'upcoming' ? 'primary' : column === 'inProgress' ? 'info' : 'success'}
                     fontWeight="bold"
                   >
                     {column === 'upcoming' && (
@@ -174,11 +224,7 @@ function Dashboard() {
                         }}
                       >
                         {tasks[column].map((task, index) => (
-                          <Draggable
-                            key={task.id}
-                            draggableId={task.id}
-                            index={index}
-                          >
+                          <Draggable key={task.id} draggableId={task.id} index={index}>
                             {(provided) => (
                               <Card
                                 ref={provided.innerRef}
@@ -196,6 +242,7 @@ function Dashboard() {
                                     boxShadow: 6,
                                   },
                                 }}
+                                onClick={() => handleOpenDialog(task)}
                               >
                                 <Typography variant="body2" sx={{ color: '#333' }}>
                                   {task.title}
@@ -205,13 +252,21 @@ function Dashboard() {
                                   <Typography variant="caption" color="textSecondary" sx={{ mr: 2 }}>
                                     {task.date}
                                   </Typography>
-                                  <Avatar
-                                    alt={task.assignedTo}
-                                    src={task.profilePic}
-                                    sx={{ width: 24, height: 24, mr: 1 }}
-                                  />
+                                  <Avatar alt={task.assignedTo} src={task.profilePic} sx={{ width: 24, height: 24, mr: 1 }} />
                                   <Typography variant="caption" color="textSecondary">
                                     {task.assignedTo}
+                                  </Typography>
+                                </MDBox>
+
+                                <MDBox display="flex" flexDirection="column" sx={{ mt: 2 }}>
+                                  <Typography variant="caption" color="textSecondary">
+                                    <strong>Department ID:</strong> {task.departmentId || 'Non spécifié'}
+                                  </Typography>
+                                  <Typography variant="caption" color="textSecondary">
+                                    <strong>Creator ID:</strong> {task.creatorId || 'Non spécifié'}
+                                  </Typography>
+                                  <Typography variant="caption" color="textSecondary">
+                                    <strong>Priority:</strong> {task.priority}
                                   </Typography>
                                 </MDBox>
                               </Card>
@@ -224,79 +279,103 @@ function Dashboard() {
                   </Droppable>
 
                   <Button
+                    sx={{ mt: 2 }}
                     variant="contained"
-                    sx={{
-                      mt: 2,
-                      backgroundColor: '#1a73e8',
-                      color: '#fff',
-                      textTransform: 'none',
-                      '&:hover': {
-                        backgroundColor: '#fff',
-                        color: '#1a73e8',
-                      },
-                    }}
-                    onClick={() => handleOpenDialog(column)}
+                    color="primary"
+                    fullWidth
+                    onClick={() => handleOpenDialog(null, column)}
                   >
-                    + Ajouter Task
+                    Ajouter une tâche
                   </Button>
                 </MDBox>
               </Grid>
             ))}
           </Grid>
         </DragDropContext>
-
-        {/* Boîte de dialogue pour ajouter une tâche */}
-        <Dialog open={dialogOpen} onClose={handleCloseDialog}>
-          <DialogTitle>Ajouter une tâche</DialogTitle>
-          <DialogContent>
-            <TextField
-              fullWidth
-              margin="dense"
-              label="Titre de la tâche"
-              value={newTask.title}
-              onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-            />
-            <TextField
-              fullWidth
-              margin="dense"
-              type="date"
-              label="Date"
-              InputLabelProps={{ shrink: true }}
-              value={newTask.date}
-              onChange={(e) => setNewTask({ ...newTask, date: e.target.value })}
-            />
-            <FormControl fullWidth margin="dense">
-              <InputLabel id="assign-to-label">Assigner à</InputLabel>
-              <Select
-                labelId="assign-to-label"
-                value={newTask.assignedTo}
-                onChange={(e) => setNewTask({ ...newTask, assignedTo: e.target.value })}
-                sx={{
-                  borderRadius: 2,
-                  '&:hover .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#1a73e8',
-                  },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                    borderColor: '#1a73e8',
-                  },
-                }}
-              >
-                {users.map((user) => (
-                  <MenuItem key={user} value={user}>
-                    {user}
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialog}>Annuler</Button>
-            <Button onClick={handleAddTask} variant="contained" color="primary">
-              Ajouter
-            </Button>
-          </DialogActions>
-        </Dialog>
       </MDBox>
+
+      {/* Dialog pour ajouter/modifier une tâche */}
+      <Dialog open={dialogOpen} onClose={handleCloseDialog}>
+        <DialogTitle>{selectedTask ? 'Modifier la tâche' : 'Ajouter une tâche'}</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Titre"
+            fullWidth
+            value={newTask.title}
+            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+            sx={{ height: 50, mb: 2 }}
+          />
+          <TextField
+            label="Description"
+            fullWidth
+            value={newTask.description}
+            onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+            sx={{ height: 50, mb: 2 }}
+          />
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={newTask.status}
+              onChange={(e) => setNewTask({ ...newTask, status: e.target.value })}
+              sx={{ height: 50, mb: 2 }}
+            >
+              <MenuItem value="upcoming">À venir</MenuItem>
+              <MenuItem value="inProgress">En cours</MenuItem>
+              <MenuItem value="done">Terminé</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            label="Priorité"
+            fullWidth
+            value={newTask.priority}
+            onChange={(e) => setNewTask({ ...newTask, priority: e.target.value })}
+            sx={{ height: 50, mb: 2 }}
+          />
+          <TextField
+            label="Date limite"
+            type="date"
+            fullWidth
+            value={newTask.dueDate}
+            onChange={(e) => setNewTask({ ...newTask, dueDate: e.target.value })}
+            sx={{ height: 50, mb: 2 }}
+            InputLabelProps={{
+              shrink: true,
+            }}
+          />
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Assigné à</InputLabel>
+            <Select
+              value={newTask.assigneeId}
+              onChange={(e) => setNewTask({ ...newTask, assigneeId: e.target.value })}
+              sx={{ height: 50, mb: 2 }}
+            >
+              {users.map((user, index) => (
+                <MenuItem key={index} value={user}>
+                  {user}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <TextField
+            label="ID du département"
+            fullWidth
+            value={newTask.departmentId}
+            onChange={(e) => setNewTask({ ...newTask, departmentId: e.target.value })}
+            sx={{ height: 50, mb: 2 }}
+          />
+          <TextField
+            label="ID du créateur"
+            fullWidth
+            value={newTask.creatorId}
+            onChange={(e) => setNewTask({ ...newTask, creatorId: e.target.value })}
+            sx={{ height: 50, mb: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseDialog} color="secondary">Annuler</Button>
+          <Button onClick={handleAddTask} color="primary">{selectedTask ? 'Mettre à jour' : 'Ajouter'}</Button>
+        </DialogActions>
+      </Dialog>
     </DashboardLayout>
   );
 }
