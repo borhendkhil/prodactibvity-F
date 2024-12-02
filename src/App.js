@@ -45,6 +45,7 @@ import createCache from '@emotion/cache';
 
 // Material Dashboard 2 React routes
 import routes from 'routes';
+import EditDepartment from 'layouts/department/EditDepartment';
 
 // Material Dashboard 2 React contexts
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from 'context';
@@ -190,8 +191,10 @@ export default function App() {
       )}
       {layout === 'vr' && <Configurator />}
       <Routes>
-        {getRoutes(routes)}
-        <Route path="*" element={<Navigate to="/dashboard" />} />
+        {getRoutes(routes)},
+        <Route path="/edit-department/:id" element={<EditDepartment />} />,
+
+        <Route path="*" element={<Navigate to="/authentication/sign-in" />} />
       </Routes>
     </ThemeProvider>
   );

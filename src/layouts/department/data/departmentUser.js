@@ -21,15 +21,20 @@ import MDTypography from 'components/MDTypography';
 import MDAvatar from 'components/MDAvatar';
 import MDBadge from 'components/MDBadge';
 
+
 // Images
 import team2 from 'assets/images/team-2.jpg';
 import team3 from 'assets/images/team-3.jpg';
 import team4 from 'assets/images/team-4.jpg';
 import { useEffect, useState } from 'react';
+
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+
+
 
 // Define the Job component
-const Roll = ({ title, description }) => (
+const Roll = ({ title="N/A", description="N/A"}) => (
   <MDBox>
     <MDTypography variant="caption" fontWeight="medium">
       {title}
@@ -64,6 +69,7 @@ export const getAllDepartments = async () => {
 export default function data() {
 
   const [departments, setDepartments] = useState([]);
+  console.log(departments);
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -83,15 +89,24 @@ export default function data() {
       </MDBox>
     </MDBox>
   );
+  const navigate = useNavigate();
+  const handleRowClick = (departmentId) => {
+    navigate(`/edit-department/${departmentId}`);
+  };
+  
 
   const rows = departments.map((department) => ({
+    
+    
     author: <Depart name={department.name} />,
-    function: <Roll title="Manager" description={department.manager} />,
+    function:  <Roll title="" description={department.mangerId || "No Manager Assigned"} />,
     status: (
+      
       <MDBox ml={-1}>
         <MDBadge
           badgeContent={department.status}
-          color={department.status === 'Active' ? 'success' : 'warning'}
+          color={department.status === 'active' ? 'success' : 'warning'}
+          
           variant="gradient"
           size="sm"
         />
@@ -99,9 +114,12 @@ export default function data() {
     ),
     employed: (
       <MDTypography variant="caption" color="text" fontWeight="medium">
-        <a href="#">user</a>
+        {department.userIds?.length || 0} Users
       </MDTypography>
     ),
+    
+
+    
   }));
 
   return {
