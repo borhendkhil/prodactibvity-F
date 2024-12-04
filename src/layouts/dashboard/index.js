@@ -50,6 +50,8 @@ import DialogActions from '@mui/material/DialogActions';
 import InputLabel from '@mui/material/InputLabel';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
+import { useEffect } from 'react';
+import  axios  from 'axios';
 
 const initialTasks = {
   upcoming: [
@@ -64,12 +66,75 @@ const initialTasks = {
   ],
 };
 
-const users = ['John Doe', 'Jane Smith', 'Mark Johnson', 'Emily Davis'];
+
+
+
+
+export const getUsers = async (depId) => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get('http://localhost:8080/api/Department/getUsersbyDepartment', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ departmentId: depId }),
+    });
+    if (response.status === 200) {
+      return response.data;
+    } else {
+      console.error("Failed to fetch users: ", response.statusText);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching users:", error.message);
+    return [];
+  }
+};
+
+export const getAllDepartments = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get('http://localhost:8080/api/Department/getAllDepartments', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.status === 200) {
+      return response.data; // Return the department data directly
+    } else {
+      console.error("Failed to fetch departments: ", response.statusText);
+      return [];
+    }
+  } catch (error) {
+    console.error("Error fetching departments:", error.message);
+    return [];
+  }
+};
+export const getCurrentUser = async () => {
+  try {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(API_URL + 'auth/getCurrentUser', {
+      headers: {
+      Authorization: `Bearer ${token}`
+      }
+    });
+
+    return response.data;
+    console.log(response.data)
+    
+  } catch (error) {
+    console.error('Error fetching current user:', error);
+    throw error;
+  }
+};
 
 function Dashboard() {
+  
+  const [departments,setDepartments]=useState([])
   const [tasks, setTasks] = useState(initialTasks);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
+  const [users,setUsers] = useState (["john","doe"]);
   const [newTask, setNewTask] = useState({
     title: '',
     description: '',
@@ -78,10 +143,10 @@ function Dashboard() {
     dueDate: '',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    assigneeId: '',
+    assigneeId: [],
     creatorId: '',
     departmentId: '',
-    column: '',
+    
   });
 
   const onDragEnd = (result) => {
@@ -110,13 +175,13 @@ function Dashboard() {
 
     setNewTask({
       ...newTask,
-      column,
+      
       status: column,
       createdAt: task ? task.createdAt : new Date().toISOString(),
       updatedAt: task ? task.updatedAt : new Date().toISOString(),
       title: task ? task.title : '',
       description: task ? task.description : '',
-      assigneeId: task ? task.assigneeId : '',
+      assigneeId: task ? task.assigneeId : [""],
       creatorId: task ? task.creatorId : '',
       departmentId: task ? task.departmentId : '',
       priority: task ? task.priority : '',
@@ -135,12 +200,30 @@ function Dashboard() {
       dueDate: '',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      assigneeId: '',
-      creatorId: '',
+      assigneeId: [""],
+      creatorId: getCurrentUser().id,
       departmentId: '',
-      column: '',
+      
     });
   };
+
+  const selectDepartment = (depId) => {
+    setUsers(getUsers(depId));
+    setNewTask({ ...newTask, departmentId: depId });
+    
+  };
+
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      const data = await getAllDepartments();
+      console.log(data)
+      setDepartments(data);
+    };
+
+    fetchDepartments();
+  
+  }, []);
 
   const handleAddTask = async () => {
     const newTaskWithTimestamps = {
@@ -150,11 +233,17 @@ function Dashboard() {
     };
 
     try {
-      const response = await fetch('/api/tasks', {
+      const token = localStorage.getItem('token');
+      const response = await fetch('http://localhost:8080/api/task/createTask', {
+
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json' 
+          },
         body: JSON.stringify(newTaskWithTimestamps),
       });
+      console.log(newTaskWithTimestamps)
 
       if (response.ok) {
         const createdTask = await response.json();
@@ -342,34 +431,40 @@ function Dashboard() {
               shrink: true,
             }}
           />
+         
           <FormControl fullWidth sx={{ mb: 2 }}>
-            <InputLabel>Assigné à</InputLabel>
+            <InputLabel>Department</InputLabel>
             <Select
-              value={newTask.assigneeId}
-              onChange={(e) => setNewTask({ ...newTask, assigneeId: e.target.value })}
+              value={newTask.departmentId || ''}
+              onChange={(e) => selectDepartment(e.target.value)}
               sx={{ height: 50, mb: 2 }}
             >
-              {users.map((user, index) => (
-                <MenuItem key={index} value={user}>
-                  {user}
+              {departments.map((department, index) => (
+                <MenuItem key={index} value={department.id}>
+                  {department.name}
                 </MenuItem>
               ))}
             </Select>
           </FormControl>
-          <TextField
-            label="ID du département"
-            fullWidth
-            value={newTask.departmentId}
-            onChange={(e) => setNewTask({ ...newTask, departmentId: e.target.value })}
-            sx={{ height: 50, mb: 2 }}
-          />
-          <TextField
-            label="ID du créateur"
-            fullWidth
-            value={newTask.creatorId}
-            onChange={(e) => setNewTask({ ...newTask, creatorId: e.target.value })}
-            sx={{ height: 50, mb: 2 }}
-          />
+          
+          {newTask.departmentId && (
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Assigné à</InputLabel>
+              <Select
+                value={newTask.assigneeId[0] || ''}
+                onChange={(e) => setNewTask({ ...newTask, assigneeId: [e.target.value] })}
+                sx={{ height: 50, mb: 2 }}
+              >
+                {users.map((user, index) => (
+                  <MenuItem key={index} value={user}>
+                    {user}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
+      
+          
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} color="secondary">Annuler</Button>

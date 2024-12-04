@@ -1,7 +1,7 @@
 // Import axios ou fetch selon vos préférences
 import axios from 'axios';
 
-const API_BASE_URL = '/api/task';
+const API_BASE_URL = 'localhost:8080/api/task';
 
 // Créer une tâche
 export async function createTask(newTask) {
